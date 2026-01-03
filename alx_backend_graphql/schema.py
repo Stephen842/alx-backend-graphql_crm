@@ -1,7 +1,13 @@
 import graphene
 
+class CRMQuery:
+    """
+    Base CRM query class required for schema composition.
+    """
+    pass
 
-class Query(graphene.ObjectType):
+
+class Query(CRMQuery, graphene.ObjectType):
     hello = graphene.String()
 
     def resolve_hello(self, info):
