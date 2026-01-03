@@ -1,12 +1,16 @@
 import graphene
-from graphene_django import DjangoObjectType
 from django.db import transaction
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene.types import Decimal as GrapheneDecimal
-from django.utils import timezone
+from graphene_django.filter import DjangoFilterConnectionField
+
 from . models import Customer, Product, Order
+from . filters import CustomerFilter, ProductFilter, OrderFilter
 
 
 class CustomerType(DjangoObjectType):
@@ -151,13 +155,51 @@ class CreateOrder(graphene.Mutation):
         order.save()
 
         return CreateOrder(order=order)
+    
+# ---- Types ----
+class CustomerNode(DjangoObjectType):
+    class Meta:
+        model = Customer
+        interfaces = (graphene.relay.Node,)
+        filterset_class = CustomerFilter
+
+class ProductNode(DjangoObjectType):
+    class Meta:
+        model = Product
+        interfaces = (graphene.relay.Node,)
+        filterset_class = ProductFilter
+
+class OrderNode(DjangoObjectType):
+    class Meta:
+        model = Order
+        interfaces = (graphene.relay.Node,)
+        filterset_class = OrderFilter
 
 
 class Query(graphene.ObjectType):
     hello = graphene.String()
 
+    # Raw lists
+    customers = graphene.List(CustomerType)
+    products = graphene.List(ProductType)
+    orders = graphene.List(OrderType)
+
+    # Filterable/paginated fields
+    all_customers = DjangoFilterConnectionField(CustomerNode)
+    all_products = DjangoFilterConnectionField(ProductNode)
+    all_orders = DjangoFilterConnectionField(OrderNode)
+
     def resolve_hello(self, info):
         return 'Hello, GraphQL!'
+    
+    def resolve_customers(root, info):
+        return Customer.objects.all()
+
+    def resolve_products(root, info):
+        return Product.objects.all()
+
+    def resolve_orders(root, info):
+        return Order.objects.select_related('customer').prefetch_related('products')
     
 
 class Mutation(graphene.ObjectType):
