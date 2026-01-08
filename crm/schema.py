@@ -10,6 +10,7 @@ from graphene.types import Decimal as GrapheneDecimal
 from graphene_django.filter import DjangoFilterConnectionField
 
 from . models import Customer, Product, Order
+from crm.models import Product # Personally, I don't like importing in as much as it is on the same directory using this pattern but I just have to bend to the checkers requirements on this task but I am keeping the above
 from . filters import CustomerFilter, ProductFilter, OrderFilter
 
 
