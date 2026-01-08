@@ -1,7 +1,8 @@
 from celery import shared_task
 from datetime import datetime
 from gql import gql, Client
-from gql.transport.requests import RequestsHTTPTransport
+from gql.transport import requests
+from gql.transport import RequestsHTTPTransport
 
 GRAPHQL_ENDPOINT = "http://localhost:8000/graphql"
 LOG_FILE = "/tmp/crm_report_log.txt"
