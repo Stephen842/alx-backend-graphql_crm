@@ -200,10 +200,27 @@ class Query(graphene.ObjectType):
 
     def resolve_orders(root, info):
         return Order.objects.select_related('customer').prefetch_related('products')
-    
+
+
+class UpdateLowStockProducts(graphene.Mutation):
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    def mutate(self, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        for product in low_stock_products:
+            product.stock += 10  # restock
+            product.save()
+
+        return UpdateLowStockProducts(
+            updated_products=low_stock_products,
+            message=f"{low_stock_products.count()} products restocked successfully"
+        )
+
 
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
